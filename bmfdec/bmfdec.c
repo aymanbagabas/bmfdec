@@ -266,12 +266,9 @@ static int process_data(char *data, uint32_t size) {
 #undef process_data
 static int process_data(char *data, uint32_t size);
 
-int main() {
-  static uint32_t pin[0x10000/4];
+int parse_data(uint8_t *pin, ssize_t lin) {
   static char pout[0x40000];
-  ssize_t lin;
   int lout;
-  lin = read(0, pin, sizeof(pin));
   if (lin < 0) {
     fprintf(stderr, "Failed to read data: %s\n", strerror(errno));
     return 1;
@@ -279,11 +276,11 @@ int main() {
     fprintf(stderr, "Failed to read data: %s\n", strerror(EFBIG));
     return 1;
   }
-  if (lin <= 16 || pin[0] != 0x424D4F46 || pin[1] != 0x01 || pin[2] != (uint32_t)lin-16 || pin[3] > sizeof(pout)) {
+  if (lin <= 16 || ((uint32_t*)pin)[0] != 0x424D4F46 || ((uint32_t*)pin)[1] != 0x01 || ((uint32_t*)pin)[2] != (uint32_t)lin-16 || ((uint32_t*)pin)[3] > sizeof(pout)) {
     fprintf(stderr, "Invalid input\n");
     return 1;
   }
-  lout = pin[3];
+  lout = ((uint32_t*)pin)[3];
   if (ds_dec((char *)pin+16, lin-16, pout, lout, 0) != lout) {
     fprintf(stderr, "Decompress failed\n");
     return 1;
